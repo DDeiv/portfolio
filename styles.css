@@ -1,0 +1,94 @@
+@font-face {
+    font-family: "Cabinet";
+    src: url(Fonts/CabinetGrotesk-Variable.ttf);
+}
+
+@font-face {
+    font-family: "Switzer";
+    src: url(Fonts/Switzer-Variable.ttf);
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: "Switzer";
+    background: rgb(255, 255, 255);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.text-container {
+    position: relative;
+    padding: 40px;
+    line-height: 1.6;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0;  /* Removed auto margin */
+    word-spacing: 5px;
+    font-size: 16px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .text-container {
+        max-width: 100%;
+        padding: 16px;
+        font-size: 14px;
+        word-spacing: 3px;
+        margin: 0 auto; /* Center on mobile */
+    }
+}
+
+.word {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    letter-spacing: 0.02em;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
+.static {
+    color: #717171;
+    transition: opacity 2s ease-in;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+.highlight {
+    color: #0080ff;
+    font-weight: 400;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+}
+
+.highlight:hover,
+.highlight:active {
+    text-decoration: underline;
+}
+
+.falling-word {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    margin: 0;
+    padding: 0;
+    font-family: "Switzer";
+    font-weight: 400;
+    font-size: 16px;
+    transition: transform 0s linear;
+    color: #606060;
+    transform-origin: left top;
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 768px) {
+    .falling-word {
+        font-size: 14px;
+    }
+}
+
+.original-hidden {
+    opacity: 0;
+    transition: opacity 0.1s ease-out;
+}
