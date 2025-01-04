@@ -6,9 +6,9 @@ const Engine = Matter.Engine,
 const engine = Engine.create();
 const runner = Runner.create();
 
-// Adjust gravity based on screen size
+// Adjust gravity based on screen size with stronger mobile gravity
 const setGravity = () => {
-    engine.world.gravity.y = window.innerWidth <= 768 ? 0.5 : 0.98;
+    engine.world.gravity.y = window.innerWidth <= 768 ? 1.5 : 0.98;
 };
 setGravity();
 
@@ -75,7 +75,13 @@ const container = document.getElementById('textContainer');
 let fallingWords = new Set();
 let fallenBodies = new Set();
 
-function createFallingWord(text, rect) {
+// Add swipe handling
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     const isMobile = window.innerWidth <= 768;
     const bodyWidth = text.length * (isMobile ? 6 : 8);
     const bodyHeight = isMobile ? 16 : 20;
@@ -96,6 +102,9 @@ function createFallingWord(text, rect) {
             isStatic: false
         }
     );
+    
+    // Apply initial velocity from swipe
+    Matter.Body.setVelocity(body, { x: velocityX, y: velocityY });
     
     World.add(engine.world, body);
     fallenBodies.add(body);
@@ -157,31 +166,55 @@ segments.forEach((segment) => {
                 span.textContent = word;
                 span.className = 'word static';
                 
-                // Add debounce to prevent multiple triggers
                 let interactionTimeout;
+                let touchStartTime;
                 
-                const handleInteraction = () => {
+                const handleWordFall = (velocityX = 0, velocityY = 0) => {
                     if (!span.classList.contains('original-hidden')) {
-                        // Clear any existing timeout
                         if (interactionTimeout) {
                             clearTimeout(interactionTimeout);
                         }
                         
                         const rect = span.getBoundingClientRect();
-                        createFallingWord(span.textContent, rect);
+                        createFallingWord(span.textContent, rect, velocityX, velocityY);
                         span.classList.add('original-hidden');
                         
-                        // Set new timeout for reappearing
                         interactionTimeout = setTimeout(() => {
                             span.classList.remove('original-hidden');
                         }, 5000);
                     }
                 };
                 
-                span.addEventListener('mouseenter', handleInteraction);
+                span.addEventListener('mouseenter', () => handleWordFall());
+                
+                // Touch and swipe handling
                 span.addEventListener('touchstart', (e) => {
                     e.preventDefault();
-                    handleInteraction();
+                    touchStartTime = Date.now();
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                });
+                
+                span.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    touchEndX = e.changedTouches[0].clientX;
+                    touchEndY = e.changedTouches[0].clientY;
+                    
+                    const touchDuration = Date.now() - touchStartTime;
+                    const deltaX = touchEndX - touchStartX;
+                    const deltaY = touchEndY - touchStartY;
+                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    
+                    // If it's a swipe (fast movement over sufficient distance)
+                    if (touchDuration < 300 && distance > 30) {
+                        const speed = distance / touchDuration;
+                        const velocityX = (deltaX / distance) * speed * 10;
+                        const velocityY = (deltaY / distance) * speed * 10;
+                        handleWordFall(velocityX, velocityY);
+                    } else if (touchDuration < 300) {
+                        // Simple tap
+                        handleWordFall();
+                    }
                 });
                 
                 container.appendChild(span);
