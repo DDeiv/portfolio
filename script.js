@@ -34,7 +34,7 @@ World.add(engine.world, [ground]);
 const links = {
     'Politecnico di Milano': 'https://www.polimi.it/',
     'Davide Bocchi': 'mailto:davidebocchi@icloud.com',
-    'Audience0': 'https://www.audiencezero.com',
+    'Audience0': 'https://www.polimi.it/',
     'vivilecanarie.com': 'https://vivilecanarie.webflow.io',
     'corsedimoto.com': 'https://corsedimoto.com',
     'brand': 'https://corsedimoto.com/brand'
