@@ -3,12 +3,19 @@ const Engine = Matter.Engine,
       Bodies = Matter.Bodies,
       World = Matter.World;
 
-const engine = Engine.create();
+const engine = Engine.create({
+    timing: {
+        timeScale: 0.85, 
+        delta: 1000 / 60
+    }
+});
 const runner = Runner.create();
 
-// Adjust gravity based on screen size with stronger mobile gravity
 const setGravity = () => {
-    engine.world.gravity.y = window.innerWidth <= 768 ? 1.5 : 0.98;
+    const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
+    engine.world.gravity.y = isChrome ? 
+        (window.innerWidth <= 768 ? 1.0 : 0.6) : 
+        (window.innerWidth <= 768 ? 2.0 : 1.3);  
 };
 setGravity();
 
@@ -22,8 +29,8 @@ const createGround = () => {
         60,
         { 
             isStatic: true,
-            friction: 0.8,
-            restitution: 0.2
+            friction: 0.85, 
+            restitution: 0.15 
         }
     );
 };
@@ -75,7 +82,6 @@ const container = document.getElementById('textContainer');
 let fallingWords = new Set();
 let fallenBodies = new Set();
 
-// Add swipe handling
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
@@ -87,6 +93,7 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     const bodyHeight = isMobile ? 16 : 20;
     const bodyX = rect.left + (rect.width / 2);
     const bodyY = rect.top + (rect.height / 2);
+    const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
 
     const body = Bodies.rectangle(
         bodyX,
@@ -94,17 +101,19 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
         bodyWidth,
         bodyHeight,
         {
-            restitution: isMobile ? 0.2 : 0.3,
-            friction: 0.8,
-            frictionAir: isMobile ? 0.02 : 0.01,
+            restitution: isChrome ? 0.15 : (isMobile ? 0.2 : 0.3),
+            friction: isChrome ? 0.85 : 0.8, // Kept the same
+            frictionAir: isChrome ? (isMobile ? 0.04 : 0.025) : (isMobile ? 0.02 : 0.01), 
             angle: 0,
-            density: isMobile ? 0.002 : 0.001,
-            isStatic: false
+            density: isChrome ? (isMobile ? 0.003 : 0.0015) : (isMobile ? 0.002 : 0.001)
         }
     );
     
-    // Apply initial velocity from swipe
-    Matter.Body.setVelocity(body, { x: velocityX, y: velocityY });
+    const velocityFactor = isChrome ? 0.7 : 1;
+    Matter.Body.setVelocity(body, { 
+        x: velocityX * velocityFactor, 
+        y: velocityY * velocityFactor 
+    });
     
     World.add(engine.world, body);
     fallenBodies.add(body);
@@ -118,13 +127,12 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     fallingWords.add(wordElement);
 
     let lastTimestamp = 0;
-    const minFrameTime = isMobile ? 20 : 16;
+    const minFrameTime = 16; 
+    let rafId;
 
     function updatePosition(timestamp) {
-        if (!body.position) return;
-        
-        if (timestamp - lastTimestamp < minFrameTime) {
-            requestAnimationFrame(updatePosition);
+        if (!body.position) {
+            cancelAnimationFrame(rafId);
             return;
         }
         
@@ -133,16 +141,24 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
         const deltaY = body.position.y - bodyY;
         const rotation = body.angle * (180 / Math.PI);
         
-        wordElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+        if (isChrome) {
+          
+            wordElement.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) rotate(${rotation}deg)`;
+        } else {
+            wordElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+        }
         
-        if (Math.abs(body.velocity.x) > 0.01 || Math.abs(body.velocity.y) > 0.01) {
-            requestAnimationFrame(updatePosition);
+        
+        const velocityThreshold = 0.03;
+        if (Math.abs(body.velocity.x) > velocityThreshold || Math.abs(body.velocity.y) > velocityThreshold) {
+            rafId = requestAnimationFrame(updatePosition);
         } else {
             body.isStatic = true;
+            cancelAnimationFrame(rafId);
         }
     }
     
-    requestAnimationFrame(updatePosition);
+    rafId = requestAnimationFrame(updatePosition);
 }
 
 const segments = parseText(text);
@@ -185,9 +201,16 @@ segments.forEach((segment) => {
                     }
                 };
                 
-                span.addEventListener('mouseenter', () => handleWordFall());
+              
+                let mouseEnterTimer;
+                span.addEventListener('mouseenter', () => {
+                    mouseEnterTimer = setTimeout(() => handleWordFall(), 10);
+                });
+                span.addEventListener('mouseleave', () => {
+                    if (mouseEnterTimer) clearTimeout(mouseEnterTimer);
+                });
                 
-                // Touch and swipe handling
+               
                 span.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     touchStartTime = Date.now();
@@ -205,14 +228,17 @@ segments.forEach((segment) => {
                     const deltaY = touchEndY - touchStartY;
                     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                     
-                    // If it's a swipe (fast movement over sufficient distance)
+                 
                     if (touchDuration < 300 && distance > 30) {
                         const speed = distance / touchDuration;
-                        const velocityX = (deltaX / distance) * speed * 10;
-                        const velocityY = (deltaY / distance) * speed * 10;
+                        
+                        const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
+                        const velocityFactor = isChrome ? 7 : 10; 
+                        const velocityX = (deltaX / distance) * speed * velocityFactor;
+                        const velocityY = (deltaY / distance) * speed * velocityFactor;
                         handleWordFall(velocityX, velocityY);
                     } else if (touchDuration < 300) {
-                        // Simple tap
+                  
                         handleWordFall();
                     }
                 });
