@@ -1,11 +1,15 @@
 @font-face {
-    font-family: "Cabinet";
-    src: url(Fonts/CabinetGrotesk-Variable.ttf);
+    font-family: "Funnel";
+    src: url(Fonts/FunnelDisplay-VariableFont_wght.ttf);
 }
 
 @font-face {
     font-family: "Switzer";
     src: url(Fonts/Switzer-Variable.ttf);
+}
+
+:root {
+    --falling-word-font-size: 16px;
 }
 
 body {
@@ -22,7 +26,7 @@ body {
     line-height: 1.6;
     z-index: 2;
     max-width: 800px;
-    margin: 0;  /* Removed auto margin */
+    margin: 0;  /* Keeping original alignment for desktop */
     word-spacing: 5px;
     font-size: 16px;
 }
@@ -32,14 +36,20 @@ body {
     .text-container {
         max-width: 100%;
         padding: 16px;
-        font-size: 14px;
+        font-size: 14px; /* This will be dynamically adjusted */
         word-spacing: 3px;
         margin: 0 auto; /* Center on mobile */
+        height: 100vh; /* Full viewport height */
+        box-sizing: border-box;
+        display: block; /* Changed from flex to block to maintain paragraph flow */
+        padding-top: 50vh; /* Start at middle of screen */
+        transform: translateY(-50%); /* Center content vertically */
+        text-align: left; /* Ensure text aligns properly */
     }
 }
 
 .word {
-    display: inline-block;
+    display: inline-block; /* Keep words inline */
     cursor: pointer;
     position: relative;
     letter-spacing: 0.02em;
@@ -75,16 +85,31 @@ body {
     padding: 0;
     font-family: "Switzer";
     font-weight: 400;
-    font-size: 16px;
+    font-size: var(--falling-word-font-size);
     transition: transform 0s linear;
     color: #606060;
     transform-origin: left top;
     letter-spacing: 0.02em;
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 @media (max-width: 768px) {
     .falling-word {
-        font-size: 14px;
+        font-size: var(--falling-word-font-size);
+    }
+    
+    /* Improved touch target area */
+    .word {
+        padding: 4px 2px;
+        display: inline; /* Ensure words flow naturally in paragraph */
+    }
+    
+    /* Prevent scroll interference */
+    html, body {
+        overscroll-behavior: none;
     }
 }
 
