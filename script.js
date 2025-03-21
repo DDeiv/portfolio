@@ -49,7 +49,6 @@ const links = {
     'brand': 'https://corsedimoto.com/brand',
     'Contact': 'mailto:davidebocchi@icloud.com',
     'Soup.fm': 'https://www.instagram.com/soupfm.love/'
-
 };
 
 const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. With a Bachelor's in Communication Design from (Politecnico di Milano). After a year of freelancing, I've had the chance to work with some awesome clients, including (Audience Zero), where I keep websites running smoothly and looking sharp. I also dove into solo web design projects like (vivilecanarie.com). Lately, I've been collaborating with (corsedimoto.com), working on their website and taking the brand further into the world of YouTube. I'm also co-founder and visual designer of (Soup.fm), a cultural project that made around 2500 people gather in 2024 and it's still going strong. 
@@ -87,12 +86,12 @@ function parseText(text) {
 const container = document.getElementById('textContainer');
 let fallingWords = new Set();
 let fallenBodies = new Set();
+let wordsMap = new Map(); // Map to store word elements for swipe detection
 
-// Add swipe handling
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
+// Global touch tracking for swipe implementation
+let touchActive = false;
+let touchX = 0;
+let touchY = 0;
 
 function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     const isMobile = window.innerWidth <= 768;
@@ -172,6 +171,99 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     rafId = requestAnimationFrame(updatePosition);
 }
 
+// Function to check if a word is in the swipe path
+function checkWordInSwipePath(wordElement, currentX, currentY) {
+    if (wordElement.classList.contains('original-hidden')) {
+        return false;
+    }
+    
+    const rect = wordElement.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    // Distance from touch point to word center
+    const distance = Math.sqrt(
+        Math.pow(currentX - centerX, 2) + 
+        Math.pow(currentY - centerY, 2)
+    );
+    
+    // Make word fall if touch point is within proximity threshold
+    const proximityThreshold = Math.max(rect.width, 40); // At least 40px or word width
+    
+    if (distance <= proximityThreshold) {
+        // Calculate swipe direction for velocity
+        const dx = currentX - touchX;
+        const dy = currentY - touchY;
+        const magnitude = Math.sqrt(dx * dx + dy * dy);
+        
+        // Only apply velocity if there's meaningful movement
+        let vx = 0, vy = 0;
+        if (magnitude > 5) {
+            // Normalize and scale
+            const speedFactor = 5; // Adjust for desired speed
+            vx = (dx / magnitude) * speedFactor;
+            vy = (dy / magnitude) * speedFactor;
+        }
+        
+        createFallingWord(wordElement.textContent, rect, vx, vy);
+        wordElement.classList.add('original-hidden');
+        
+        // Reset word after delay
+        setTimeout(() => {
+            wordElement.classList.remove('original-hidden');
+        }, 5000);
+        
+        return true;
+    }
+    
+    return false;
+}
+
+// Setup swipe handling for the document
+function setupSwipeHandling() {
+    // Only add touch handlers if on mobile
+    if (window.innerWidth <= 768) {
+        document.addEventListener('touchstart', (e) => {
+            touchActive = true;
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+            
+            // Check words at starting point
+            wordsMap.forEach((wordEl) => {
+                if (wordEl.classList.contains('static') && !wordEl.classList.contains('original-hidden')) {
+                    checkWordInSwipePath(wordEl, touchX, touchY);
+                }
+            });
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!touchActive) return;
+            
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            
+            // Check all words on each move
+            wordsMap.forEach((wordEl) => {
+                if (wordEl.classList.contains('static') && !wordEl.classList.contains('original-hidden')) {
+                    checkWordInSwipePath(wordEl, currentX, currentY);
+                }
+            });
+            
+            // Update touch coordinates
+            touchX = currentX;
+            touchY = currentY;
+        });
+        
+        document.addEventListener('touchend', () => {
+            touchActive = false;
+        });
+        
+        document.addEventListener('touchcancel', () => {
+            touchActive = false;
+        });
+    }
+}
+
 const segments = parseText(text);
 
 segments.forEach((segment) => {
@@ -192,6 +284,9 @@ segments.forEach((segment) => {
                 const span = document.createElement('span');
                 span.textContent = word;
                 span.className = 'word static';
+                
+                // Store word element in map for swipe detection
+                wordsMap.set(span.textContent + Math.random(), span);
                 
                 let interactionTimeout;
                 let touchStartTime;
@@ -221,38 +316,41 @@ segments.forEach((segment) => {
                     if (mouseEnterTimer) clearTimeout(mouseEnterTimer);
                 });
                 
-                // Touch and swipe handling
-                span.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    touchStartTime = Date.now();
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                });
-                
-                span.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    touchEndX = e.changedTouches[0].clientX;
-                    touchEndY = e.changedTouches[0].clientY;
+                // Keep original touch handling for individual words
+                // but only on mobile
+                if (window.innerWidth <= 768) {
+                    span.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        touchStartTime = Date.now();
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                    });
                     
-                    const touchDuration = Date.now() - touchStartTime;
-                    const deltaX = touchEndX - touchStartX;
-                    const deltaY = touchEndY - touchStartY;
-                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                    
-                    // If it's a swipe (fast movement over sufficient distance)
-                    if (touchDuration < 300 && distance > 30) {
-                        const speed = distance / touchDuration;
-                        // Adjusted velocity factor for Chrome
-                        const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
-                        const velocityFactor = isChrome ? 7 : 10; // Increased from 5 to 7 for Chrome
-                        const velocityX = (deltaX / distance) * speed * velocityFactor;
-                        const velocityY = (deltaY / distance) * speed * velocityFactor;
-                        handleWordFall(velocityX, velocityY);
-                    } else if (touchDuration < 300) {
-                        // Simple tap
-                        handleWordFall();
-                    }
-                });
+                    span.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        const touchEndX = e.changedTouches[0].clientX;
+                        const touchEndY = e.changedTouches[0].clientY;
+                        
+                        const touchDuration = Date.now() - touchStartTime;
+                        const deltaX = touchEndX - touchStartX;
+                        const deltaY = touchEndY - touchStartY;
+                        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                        
+                        // If it's a swipe (fast movement over sufficient distance)
+                        if (touchDuration < 300 && distance > 30) {
+                            const speed = distance / touchDuration;
+                            // Adjusted velocity factor for Chrome
+                            const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
+                            const velocityFactor = isChrome ? 7 : 10; // Increased from 5 to 7 for Chrome
+                            const velocityX = (deltaX / distance) * speed * velocityFactor;
+                            const velocityY = (deltaY / distance) * speed * velocityFactor;
+                            handleWordFall(velocityX, velocityY);
+                        } else if (touchDuration < 300) {
+                            // Simple tap
+                            handleWordFall();
+                        }
+                    });
+                }
                 
                 container.appendChild(span);
             } else {
@@ -261,6 +359,53 @@ segments.forEach((segment) => {
         });
     }
 });
+
+function adjustFontSizeForViewport() {
+    // Only adjust font size on mobile
+    if (window.innerWidth <= 768) {
+        const viewportHeight = window.innerHeight;
+        // Get the current height of the text container
+        const containerHeight = container.scrollHeight;
+        
+        // Initial font size from CSS (14px for mobile)
+        let fontSize = 14;
+        
+        // If text is too small for viewport, increase font size
+        if (containerHeight < viewportHeight * 0.85) {
+            while (containerHeight < viewportHeight * 0.85 && fontSize < 24) {
+                fontSize += 0.5;
+                container.style.fontSize = `${fontSize}px`;
+                
+                // Break if we're getting too close to filling
+                if (container.scrollHeight > viewportHeight * 0.95) {
+                    break;
+                }
+            }
+        }
+        // If text is too large for viewport, decrease font size
+        else if (containerHeight > viewportHeight * 0.95) {
+            while (containerHeight > viewportHeight * 0.95 && fontSize > 10) {
+                fontSize -= 0.5;
+                container.style.fontSize = `${fontSize}px`;
+                
+                // Break if we're getting too small
+                if (container.scrollHeight < viewportHeight * 0.85) {
+                    // Increase slightly to find the sweet spot
+                    fontSize += 0.5;
+                    container.style.fontSize = `${fontSize}px`;
+                    break;
+                }
+            }
+        }
+        
+        // Update falling word font size to match
+        document.documentElement.style.setProperty('--falling-word-font-size', `${fontSize}px`);
+    } else {
+        // Reset to default for desktop
+        container.style.fontSize = '';
+        document.documentElement.style.setProperty('--falling-word-font-size', '16px');
+    }
+}
 
 function handleResize() {
     World.remove(engine.world, ground);
@@ -273,6 +418,9 @@ function handleResize() {
             body.isStatic = false;
         }
     });
+    
+    // Adjust font size when screen size changes
+    adjustFontSizeForViewport();
 }
 
 window.addEventListener('resize', handleResize);
@@ -284,3 +432,9 @@ function resetFallenWords() {
     fallenBodies.clear();
     fallingWords.clear();
 }
+
+// Initialize swipe handling
+setupSwipeHandling();
+
+// Set font size on initial load
+document.addEventListener('DOMContentLoaded', adjustFontSizeForViewport);
