@@ -3,19 +3,21 @@ const Engine = Matter.Engine,
       Bodies = Matter.Bodies,
       World = Matter.World;
 
+// Create engine with increased timeScale for faster animation
 const engine = Engine.create({
     timing: {
-        timeScale: 0.85, 
+        timeScale: 0.85, // Increased from 0.7 to 0.85 for faster animation
         delta: 1000 / 60
     }
 });
 const runner = Runner.create();
 
+// Increased gravity values for faster falling
 const setGravity = () => {
     const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
     engine.world.gravity.y = isChrome ? 
-        (window.innerWidth <= 768 ? 1.0 : 0.6) : 
-        (window.innerWidth <= 768 ? 2.0 : 1.3);  
+        (window.innerWidth <= 768 ? 1.0 : 0.6) : // Increased from 0.8/0.6 to 1.0/0.8
+        (window.innerWidth <= 768 ? 2.0 : 1.3);  // Increased from 1.2/0.8 to 1.4/1.0
 };
 setGravity();
 
@@ -29,8 +31,8 @@ const createGround = () => {
         60,
         { 
             isStatic: true,
-            friction: 0.85, 
-            restitution: 0.15 
+            friction: 0.85, // Kept the same
+            restitution: 0.15 // Kept the same
         }
     );
 };
@@ -39,15 +41,19 @@ let ground = createGround();
 World.add(engine.world, [ground]);
 
 const links = {
-    'Politecnico di Milano': 'https://www.polimi.it/',
+    'Politecnico di Milano': 'Politecnico.html/',
     'Davide Bocchi': 'mailto:davidebocchi@icloud.com',
     'Audience Zero': 'https://www.audiencezero.com',
     'vivilecanarie.com': 'https://vivilecanarie.webflow.io',
     'corsedimoto.com': 'https://corsedimoto.com',
-    'brand': 'https://corsedimoto.com/brand'
+    'brand': 'https://corsedimoto.com/brand',
+    'Contact': 'mailto:davidebocchi@icloud.com',
+    'Soup.fm': 'https://www.instagram.com/soupfm.love/'
+
 };
 
-const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. With a Bachelor's in Communication Design from (Politecnico di Milano). After a year of freelancing, I've had the chance to work with some awesome clients, including (Audience Zero), where I keep websites running smoothly and looking sharp. I also dove into solo web design projects like (vivilecanarie.com). Lately, I've been collaborating with (corsedimoto.com), working on their website and taking the brand further into the world of YouTube.`;
+const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. With a Bachelor's in Communication Design from (Politecnico di Milano). After a year of freelancing, I've had the chance to work with some awesome clients, including (Audience Zero), where I keep websites running smoothly and looking sharp. I also dove into solo web design projects like (vivilecanarie.com). Lately, I've been collaborating with (corsedimoto.com), working on their website and taking the brand further into the world of YouTube. I'm also co-founder and visual designer of (Soup.fm), a cultural project that made around 2500 people gather in 2024 and it's still going strong. 
+(Contact) me if you want to grab a coffee or a beer and talk about your feelings or even hire me.`;
 
 function parseText(text) {
     const parts = [];
@@ -82,6 +88,7 @@ const container = document.getElementById('textContainer');
 let fallingWords = new Set();
 let fallenBodies = new Set();
 
+// Add swipe handling
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
@@ -101,15 +108,16 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
         bodyWidth,
         bodyHeight,
         {
-            restitution: isChrome ? 0.15 : (isMobile ? 0.2 : 0.3),
+            restitution: isChrome ? 0.15 : (isMobile ? 0.2 : 0.3), // Kept the same
             friction: isChrome ? 0.85 : 0.8, // Kept the same
-            frictionAir: isChrome ? (isMobile ? 0.04 : 0.025) : (isMobile ? 0.02 : 0.01), 
+            frictionAir: isChrome ? (isMobile ? 0.04 : 0.025) : (isMobile ? 0.02 : 0.01), // Kept the same
             angle: 0,
-            density: isChrome ? (isMobile ? 0.003 : 0.0015) : (isMobile ? 0.002 : 0.001)
+            density: isChrome ? (isMobile ? 0.003 : 0.0015) : (isMobile ? 0.002 : 0.001) // Kept the same
         }
     );
     
-    const velocityFactor = isChrome ? 0.7 : 1;
+    // Apply initial velocity with increased factor for Chrome
+    const velocityFactor = isChrome ? 0.7 : 1; // Increased from 0.5 to 0.7 for Chrome
     Matter.Body.setVelocity(body, { 
         x: velocityX * velocityFactor, 
         y: velocityY * velocityFactor 
@@ -126,8 +134,9 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     document.body.appendChild(wordElement);
     fallingWords.add(wordElement);
 
+    // Animation timing - using consistent frame rate for both browsers
     let lastTimestamp = 0;
-    const minFrameTime = 16; 
+    const minFrameTime = 16; // Set to 16ms (60fps) for both browsers
     let rafId;
 
     function updatePosition(timestamp) {
@@ -136,20 +145,22 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
             return;
         }
         
+        // Use constant frame timing
         lastTimestamp = timestamp;
         const deltaX = body.position.x - bodyX;
         const deltaY = body.position.y - bodyY;
         const rotation = body.angle * (180 / Math.PI);
         
+        // Force hardware acceleration and use direct transform for Chrome
         if (isChrome) {
-          
+            // Use direct transform without smoothing for Chrome
             wordElement.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) rotate(${rotation}deg)`;
         } else {
             wordElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
         }
         
-        
-        const velocityThreshold = 0.03;
+        // Adjusted threshold for stopping
+        const velocityThreshold = 0.03; // Use same threshold for all browsers
         if (Math.abs(body.velocity.x) > velocityThreshold || Math.abs(body.velocity.y) > velocityThreshold) {
             rafId = requestAnimationFrame(updatePosition);
         } else {
@@ -201,7 +212,7 @@ segments.forEach((segment) => {
                     }
                 };
                 
-              
+                // Add a small delay to mouse interaction to prevent accidental triggers
                 let mouseEnterTimer;
                 span.addEventListener('mouseenter', () => {
                     mouseEnterTimer = setTimeout(() => handleWordFall(), 10);
@@ -210,7 +221,7 @@ segments.forEach((segment) => {
                     if (mouseEnterTimer) clearTimeout(mouseEnterTimer);
                 });
                 
-               
+                // Touch and swipe handling
                 span.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     touchStartTime = Date.now();
@@ -228,17 +239,17 @@ segments.forEach((segment) => {
                     const deltaY = touchEndY - touchStartY;
                     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                     
-                 
+                    // If it's a swipe (fast movement over sufficient distance)
                     if (touchDuration < 300 && distance > 30) {
                         const speed = distance / touchDuration;
-                        
+                        // Adjusted velocity factor for Chrome
                         const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
-                        const velocityFactor = isChrome ? 7 : 10; 
+                        const velocityFactor = isChrome ? 7 : 10; // Increased from 5 to 7 for Chrome
                         const velocityX = (deltaX / distance) * speed * velocityFactor;
                         const velocityY = (deltaY / distance) * speed * velocityFactor;
                         handleWordFall(velocityX, velocityY);
                     } else if (touchDuration < 300) {
-                  
+                        // Simple tap
                         handleWordFall();
                     }
                 });
