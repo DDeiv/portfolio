@@ -3,21 +3,20 @@ const Engine = Matter.Engine,
       Bodies = Matter.Bodies,
       World = Matter.World;
 
-// Create engine with increased timeScale for faster animation
+
 const engine = Engine.create({
     timing: {
-        timeScale: 0.85, // Increased from 0.7 to 0.85 for faster animation
+        timeScale: 0.85, 
         delta: 1000 / 60
     }
 });
 const runner = Runner.create();
 
-// Increased gravity values for faster falling
 const setGravity = () => {
     const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
     engine.world.gravity.y = isChrome ? 
-        (window.innerWidth <= 768 ? 1.0 : 0.6) : // Increased from 0.8/0.6 to 1.0/0.8
-        (window.innerWidth <= 768 ? 2.0 : 1.3);  // Increased from 1.2/0.8 to 1.4/1.0
+        (window.innerWidth <= 768 ? 1.0 : 0.6) : 
+        (window.innerWidth <= 768 ? 2.0 : 1.3);  
 };
 setGravity();
 
@@ -31,8 +30,8 @@ const createGround = () => {
         60,
         { 
             isStatic: true,
-            friction: 0.85, // Kept the same
-            restitution: 0.15 // Kept the same
+            friction: 0.85, 
+            restitution: 0.15 
         }
     );
 };
@@ -48,7 +47,7 @@ const links = {
     'corsedimoto.com': 'https://corsedimoto.com',
     'brand': 'https://corsedimoto.com/brand',
     'Contact': 'mailto:davidebocchi@icloud.com',
-    'Soup.fm': 'https://www.instagram.com/soupfm.love/'
+    'Soup.fm': 'pages/soup.html'
 };
 
 const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. With a Bachelor's in Communication Design from (Politecnico di Milano). After a year of freelancing, I've had the chance to work with some awesome clients, including (Audience Zero), where I keep websites running smoothly and looking sharp. I also dove into solo web design projects like (vivilecanarie.com). Lately, I've been collaborating with (corsedimoto.com), working on their website and taking the brand further into the world of YouTube. I'm also co-founder and visual designer of (Soup.fm), a cultural project that made around 2500 people gather in 2024 and it's still going strong. 
@@ -86,9 +85,8 @@ function parseText(text) {
 const container = document.getElementById('textContainer');
 let fallingWords = new Set();
 let fallenBodies = new Set();
-let wordsMap = new Map(); // Map to store word elements for swipe detection
+let wordsMap = new Map(); 
 
-// Global touch tracking for swipe implementation
 let touchActive = false;
 let touchX = 0;
 let touchY = 0;
@@ -107,16 +105,15 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
         bodyWidth,
         bodyHeight,
         {
-            restitution: isChrome ? 0.15 : (isMobile ? 0.2 : 0.3), // Kept the same
-            friction: isChrome ? 0.85 : 0.8, // Kept the same
-            frictionAir: isChrome ? (isMobile ? 0.04 : 0.025) : (isMobile ? 0.02 : 0.01), // Kept the same
+            restitution: isChrome ? 0.15 : (isMobile ? 0.2 : 0.3),
+            friction: isChrome ? 0.85 : 0.8, 
+            frictionAir: isChrome ? (isMobile ? 0.04 : 0.025) : (isMobile ? 0.02 : 0.01), 
             angle: 0,
-            density: isChrome ? (isMobile ? 0.003 : 0.0015) : (isMobile ? 0.002 : 0.001) // Kept the same
+            density: isChrome ? (isMobile ? 0.003 : 0.0015) : (isMobile ? 0.002 : 0.001) 
         }
     );
     
-    // Apply initial velocity with increased factor for Chrome
-    const velocityFactor = isChrome ? 0.7 : 1; // Increased from 0.5 to 0.7 for Chrome
+    const velocityFactor = isChrome ? 0.7 : 1; 
     Matter.Body.setVelocity(body, { 
         x: velocityX * velocityFactor, 
         y: velocityY * velocityFactor 
@@ -133,9 +130,8 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     document.body.appendChild(wordElement);
     fallingWords.add(wordElement);
 
-    // Animation timing - using consistent frame rate for both browsers
     let lastTimestamp = 0;
-    const minFrameTime = 16; // Set to 16ms (60fps) for both browsers
+    const minFrameTime = 16; 
     let rafId;
 
     function updatePosition(timestamp) {
@@ -144,22 +140,18 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
             return;
         }
         
-        // Use constant frame timing
         lastTimestamp = timestamp;
         const deltaX = body.position.x - bodyX;
         const deltaY = body.position.y - bodyY;
         const rotation = body.angle * (180 / Math.PI);
         
-        // Force hardware acceleration and use direct transform for Chrome
         if (isChrome) {
-            // Use direct transform without smoothing for Chrome
             wordElement.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) rotate(${rotation}deg)`;
         } else {
             wordElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
         }
         
-        // Adjusted threshold for stopping
-        const velocityThreshold = 0.03; // Use same threshold for all browsers
+        const velocityThreshold = 0.03; 
         if (Math.abs(body.velocity.x) > velocityThreshold || Math.abs(body.velocity.y) > velocityThreshold) {
             rafId = requestAnimationFrame(updatePosition);
         } else {
@@ -171,7 +163,6 @@ function createFallingWord(text, rect, velocityX = 0, velocityY = 0) {
     rafId = requestAnimationFrame(updatePosition);
 }
 
-// Function to check if a word is in the swipe path
 function checkWordInSwipePath(wordElement, currentX, currentY) {
     if (wordElement.classList.contains('original-hidden')) {
         return false;
@@ -181,26 +172,21 @@ function checkWordInSwipePath(wordElement, currentX, currentY) {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    // Distance from touch point to word center
     const distance = Math.sqrt(
         Math.pow(currentX - centerX, 2) + 
         Math.pow(currentY - centerY, 2)
     );
     
-    // Make word fall if touch point is within proximity threshold
-    const proximityThreshold = Math.max(rect.width, 40); // At least 40px or word width
+    const proximityThreshold = Math.max(rect.width, 40); 
     
     if (distance <= proximityThreshold) {
-        // Calculate swipe direction for velocity
         const dx = currentX - touchX;
         const dy = currentY - touchY;
         const magnitude = Math.sqrt(dx * dx + dy * dy);
         
-        // Only apply velocity if there's meaningful movement
         let vx = 0, vy = 0;
         if (magnitude > 5) {
-            // Normalize and scale
-            const speedFactor = 5; // Adjust for desired speed
+            const speedFactor = 5; 
             vx = (dx / magnitude) * speedFactor;
             vy = (dy / magnitude) * speedFactor;
         }
@@ -208,7 +194,6 @@ function checkWordInSwipePath(wordElement, currentX, currentY) {
         createFallingWord(wordElement.textContent, rect, vx, vy);
         wordElement.classList.add('original-hidden');
         
-        // Reset word after delay
         setTimeout(() => {
             wordElement.classList.remove('original-hidden');
         }, 5000);
@@ -219,16 +204,13 @@ function checkWordInSwipePath(wordElement, currentX, currentY) {
     return false;
 }
 
-// Setup swipe handling for the document
 function setupSwipeHandling() {
-    // Only add touch handlers if on mobile
     if (window.innerWidth <= 768) {
         document.addEventListener('touchstart', (e) => {
             touchActive = true;
             touchX = e.touches[0].clientX;
             touchY = e.touches[0].clientY;
             
-            // Check words at starting point
             wordsMap.forEach((wordEl) => {
                 if (wordEl.classList.contains('static') && !wordEl.classList.contains('original-hidden')) {
                     checkWordInSwipePath(wordEl, touchX, touchY);
@@ -242,14 +224,12 @@ function setupSwipeHandling() {
             const currentX = e.touches[0].clientX;
             const currentY = e.touches[0].clientY;
             
-            // Check all words on each move
             wordsMap.forEach((wordEl) => {
                 if (wordEl.classList.contains('static') && !wordEl.classList.contains('original-hidden')) {
                     checkWordInSwipePath(wordEl, currentX, currentY);
                 }
             });
             
-            // Update touch coordinates
             touchX = currentX;
             touchY = currentY;
         });
@@ -285,7 +265,6 @@ segments.forEach((segment) => {
                 span.textContent = word;
                 span.className = 'word static';
                 
-                // Store word element in map for swipe detection
                 wordsMap.set(span.textContent + Math.random(), span);
                 
                 let interactionTimeout;
@@ -307,7 +286,6 @@ segments.forEach((segment) => {
                     }
                 };
                 
-                // Add a small delay to mouse interaction to prevent accidental triggers
                 let mouseEnterTimer;
                 span.addEventListener('mouseenter', () => {
                     mouseEnterTimer = setTimeout(() => handleWordFall(), 10);
@@ -316,8 +294,7 @@ segments.forEach((segment) => {
                     if (mouseEnterTimer) clearTimeout(mouseEnterTimer);
                 });
                 
-                // Keep original touch handling for individual words
-                // but only on mobile
+                
                 if (window.innerWidth <= 768) {
                     span.addEventListener('touchstart', (e) => {
                         e.preventDefault();
@@ -360,52 +337,6 @@ segments.forEach((segment) => {
     }
 });
 
-function adjustFontSizeForViewport() {
-    // Only adjust font size on mobile
-    if (window.innerWidth <= 768) {
-        const viewportHeight = window.innerHeight;
-        // Get the current height of the text container
-        const containerHeight = container.scrollHeight;
-        
-        // Initial font size from CSS (14px for mobile)
-        let fontSize = 14;
-        
-        // If text is too small for viewport, increase font size
-        if (containerHeight < viewportHeight * 0.85) {
-            while (containerHeight < viewportHeight * 0.85 && fontSize < 24) {
-                fontSize += 0.5;
-                container.style.fontSize = `${fontSize}px`;
-                
-                // Break if we're getting too close to filling
-                if (container.scrollHeight > viewportHeight * 0.95) {
-                    break;
-                }
-            }
-        }
-        // If text is too large for viewport, decrease font size
-        else if (containerHeight > viewportHeight * 0.95) {
-            while (containerHeight > viewportHeight * 0.95 && fontSize > 10) {
-                fontSize -= 0.5;
-                container.style.fontSize = `${fontSize}px`;
-                
-                // Break if we're getting too small
-                if (container.scrollHeight < viewportHeight * 0.85) {
-                    // Increase slightly to find the sweet spot
-                    fontSize += 0.5;
-                    container.style.fontSize = `${fontSize}px`;
-                    break;
-                }
-            }
-        }
-        
-        // Update falling word font size to match
-        document.documentElement.style.setProperty('--falling-word-font-size', `${fontSize}px`);
-    } else {
-        // Reset to default for desktop
-        container.style.fontSize = '';
-        document.documentElement.style.setProperty('--falling-word-font-size', '16px');
-    }
-}
 
 function handleResize() {
     World.remove(engine.world, ground);
@@ -419,8 +350,8 @@ function handleResize() {
         }
     });
     
-    // Adjust font size when screen size changes
-    adjustFontSizeForViewport();
+  
+
 }
 
 window.addEventListener('resize', handleResize);
@@ -435,6 +366,3 @@ function resetFallenWords() {
 
 // Initialize swipe handling
 setupSwipeHandling();
-
-// Set font size on initial load
-document.addEventListener('DOMContentLoaded', adjustFontSizeForViewport);
