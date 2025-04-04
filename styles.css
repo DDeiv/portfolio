@@ -52,15 +52,15 @@ body {
     .text-container {
         max-width: 100%;
         padding: 18px;
-        font-size: 18px;
+        font-size: 16px;
         word-spacing: 3px;
-        margin: 0 auto; /* Center on mobile */
-        height: 100vh; /* Full viewport height */
+        margin: 0 auto; 
+        height: 100vh; 
         box-sizing: border-box;
-        display: block; /* Changed from flex to block to maintain paragraph flow */
-        padding-top: 50vh; /* Start at middle of screen */
-        transform: translateY(-50%); /* Center content vertically */
-        text-align: left; /* Ensure text aligns properly */
+        display: block; 
+        padding-top: 50vh; 
+        transform: translateY(-50%);
+        text-align: left; 
     }
 }
 
@@ -101,7 +101,7 @@ body {
     padding: 0;
     font-family: "Switzer";
     font-weight: 400;
-    font-size: 18px;
+    font-size: 16px;
     transition: transform 0s linear;
     color: #606060;
     transform-origin: left top;
