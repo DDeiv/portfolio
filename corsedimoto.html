@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>Davide Bocchi</title>
+        <link rel="stylesheet" href="pagestyle.css">
+    </head>
+    <body>
+    <div class="horizontal-container" id="horizontalcontainer">
+        <div class="text-container" id="textContainer" style="padding-top: 0px;"> 
+            <p>  
+                <a href="https://www.corsedimoto.com/" style="color: red; text-decoration: none;">CORSEDIMOTO.COM</a> has been a client for good part of 2024 for whom i fixed some issues regarding the speed and accessibility of the website and helped to introduce their brand into the world of youtube with some video editing and motion design. video editing example <a href="https://www.youtube.com/watch?v=uH3E7iHdIW8" style="color: red; text-decoration: none;">HERE</a> <BR>(i didn't take the videos)
+             </p>
+
+             
+         </div> 
+        <div>
+            <p style="padding-top: 100px; padding-right: 10px;"> <a href="https://davidebocchi.xyz/" style="color:red;  text-decoration: none;" >< BACK</a> 
+        </div>
+    </div>
+
+    <div  class="video-container">
+        <video class="autoplay-video" muted loop playsinline preload="auto">
+            <source src="video1.mp4" type="video/mp4">
+        </video>
+        <video class="autoplay-video" muted loop playsinline preload="auto">
+            <source src="video2.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll('.autoplay-video').forEach(video => {
+                video.play().catch(e => {
+                    console.warn("Autoplay failed for a video:", e);
+                });
+            });
+        });
+    </script>
+
+    </body>
+</html>
