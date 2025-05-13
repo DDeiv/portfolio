@@ -44,7 +44,7 @@ const links = {
     'Davide Bocchi': 'mailto:davidebocchi@icloud.com',
     'Audience Zero': 'https://www.audiencezero.com',
     'vivilecanarie.com': 'https://vivilecanarie.webflow.io',
-    'corsedimoto.com': 'https://corsedimoto.com',
+    'corsedimoto.com': 'pages/corsedimoto.html',
     'brand': 'https://corsedimoto.com/brand',
     'Contact': 'mailto:davidebocchi@icloud.com',
     'Soup.fm': 'pages/soup.html'
