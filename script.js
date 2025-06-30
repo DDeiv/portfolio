@@ -44,10 +44,10 @@ const links = {
     'Davide Bocchi': 'mailto:davidebocchi@icloud.com',
     'Audience Zero': 'https://www.audiencezero.com',
     'vivilecanarie.com': 'https://vivilecanarie.webflow.io',
-    'corsedimoto.com': 'pages/corsedimoto.html',
-    'brand': 'https://corsedimoto.com/brand',
+    'corsedimoto.com': 'https://corsedimoto.com/brand',
+    'Here': 'https://corsedimoto.com/brand',
     'Contact': 'mailto:davidebocchi@icloud.com',
-    'Soup.fm': 'pages/soup.html'
+    'Soup.fm': 'https://www.instagram.com/soupfm.love/'
 };
 
 const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. 
