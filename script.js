@@ -58,7 +58,7 @@ see the preview]. I've collaborated with (corsedimoto.com), working on their web
 into the world of YouTube. I'm also co-founder and visual designer of (Soup.fm), a cultural project based in Lisbon 
 that made around 4000 people gather in 2024 and it's still going strong. 
 (here) you can see some of my works.
-(Contact) me if you want to grab a coffee or a beer and talk about your feelings or even hire me :)`;
+(Contact) me if you want to grab a coffee or a beer and talk about your feelings or even hire me :]`;
 
 function parseText(text) {
     const parts = [];
