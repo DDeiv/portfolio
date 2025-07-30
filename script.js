@@ -47,7 +47,7 @@ const links = {
     'corsedimoto.com': 'https://www.corsedimoto.com/',
     'Contact': 'mailto:davidebocchi@icloud.com',
     'Soup.fm': 'https://www.instagram.com/soupfm.love/',
-    'Here': 'pages/lavori.html',
+    'Here': '/lavori.html',
 };
 
 const text = `Hi! I'm (Davide Bocchi), an all-around visual designer with a current focus on front end development. With a Bachelor's in Communication Design from (Politecnico di Milano). After a year of freelancing, I've had the chance to work with some awesome clients, including (Audience Zero), where I keep websites running smoothly and looking sharp. I also dove into solo web design projects like (vivilecanarie.com). Lately, I've been collaborating with (corsedimoto.com), working on their website and taking the brand further into the world of YouTube. I'm also co-founder and visual designer of (Soup.fm), a cultural project that made around 2500 people gather in 2024 and it's still going strong. 
